@@ -3,6 +3,9 @@ import { initializeApp } from "firebase/app";
 // 파이어스토어 객체 변수 가져오기
 import { getFirestore, collection } from 'firebase/firestore';
 
+
+// app.use(VueFire, { modules: [VueFireFirestoreOptionsAPI(options)] });
+
 // 파이어베이스 DB를 초기화하고 연결
 const oDB = initializeApp({
   apiKey: "AIzaSyDN_HCT-3LRzAb0KzH6pLtR7tlQTadUaiE",

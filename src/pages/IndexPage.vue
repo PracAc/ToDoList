@@ -34,25 +34,51 @@
       </q-card-section>
     </q-card>
   </q-dialog>
+  <div>123</div>
+  <!-- <div v-for="item in " :key=item.title>
+    <span>{{ item }}</span>
+  </div> -->
 </template>
 
 <script>
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { INITIAL_EVENTS, createEventId } from './event-utils';
+import { createEventId } from './event-utils';
+// import { INITIAL_EVENTS, createEventId } from './event-utils';
 import { ref } from 'vue';
 
 // 파이어베이스에서 oTodosinDB 객체 변수 가져옴
-import { database, oTodosinDB } from '/src/datasources/firebase';
+import { database, oTodosinDB } from 'src/datasources/firebase';
 // 파이어스토어 모듈객체 가져오기
 import { doc, deleteDoc, updateDoc, setDoc, getDocs, collection } from "firebase/firestore";
+// let PEvents = [];
+// let GetEvent = async function () {
+//   let querySnapshot = await getDocs(oTodosinDB);
+//   querySnapshot.forEach((doc) => {
 
+//     PEvents.push(doc.data());
+//     // console.log(doc.data());
+//   });
+//   //   return PEvents;
+// };
+let getEvent = async function () {
+  const todoTextList = [];
+  let querySnapshot = await getDocs(oTodosinDB);
+  querySnapshot.forEach((doc) => {
+    todoTextList.push(doc.data()); // DB정보 배열로 가져오기
+    console.log(doc.data()['todo_title']); // DB정보 제목만 찍기
+  });
+  console.log(todoTextList);
+};
+// GetEvent();
 export default {
   components: {
     FullCalendar // make the <FullCalendar> tag available
   },
   data() {
+    console.log(oTodosinDB);
+    getEvent();
     return {
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
@@ -64,7 +90,8 @@ export default {
         locale: 'ko',
         initialView: 'dayGridMonth',
         // 기본값으로 설정하는 이벤트 추후 db연동 세팅
-        initialEvents: INITIAL_EVENTS,
+        initialEvents: PEvents,
+        // initialEvents: INITIAL_EVENTS,
         timeZone: 'local',
         editable: true,
         selectable: true,
@@ -75,7 +102,6 @@ export default {
         select: this.handleDateSelect,
         eventClick: this.handleEventClick,
       },
-      oTodos: [], // 할일 데이터 목록 저장 변수
     };
   },
   firestore: { oTodos: oTodosinDB },
@@ -84,21 +110,16 @@ export default {
       console.log(arg);
     },
     handleDateSelect(selectInfo) {
-      // 나중에 날짜 계산디테일 필요시
-      // let Pday = new Date(selectInfo.endStr);
-      // Pday = new Date(Pday.setDate(Pday.getDate() - 1));
-      // Pday = Pday.toISOString().slice(0, 10);
 
       this.StartDay = selectInfo.startStr;
       this.EndDay = selectInfo.endStr;
 
       this.Info = selectInfo;
       this.icon = true;
-      console.log();
     },
     handleEventClick(clickInfo) {
       console.log(clickInfo.event.startStr);
-
+      createEventId();
       // if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
       //   clickInfo.event.remove();
       // }
@@ -121,7 +142,6 @@ export default {
         this.Ptitle = '';
         this.icon = false;
         console.log(this.Info);
-        // fnSaveEdit(this.Info)
       }
       else {
       }
@@ -155,20 +175,31 @@ export default {
     let EndDay = ref('');
     let Info = ref('');
     let Ptitle = ref('');
+    let item = [];
     // updateDoc(doc(db, 'doc', 'id'),{필드수정}) 전달된 할 일의 수정값을 DB에 저장
     let fnSaveEdit = function (Info) {
       const pKey = this.Ptitle;
       setDoc(doc(database, 'Lists', pKey), {
         id: createEventId(),
-        title: this.Ptitle,
+        title: pKey,
         start: Info.startStr,
         end: Info.endStr,
         allDay: Info.allDay,
       });
     };
+
     return {
-      icon, StartDay, EndDay, Ptitle, Info, ModiDel, fnSaveEdit
+      icon, StartDay, EndDay, Ptitle, Info, ModiDel, fnSaveEdit,
     };
   }
 };
+console.log();
+// 파이어스토어 규칙 변경
+// match /databases/{database}/documents {
+//     // 자신의 데이터만 읽고 쓸 수 있도록 허용
+//     match /users/{userId} { 
+//       allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+//       allow create: if request.auth != null;
+//     }
+//   }
 </script>
