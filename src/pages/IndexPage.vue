@@ -2,7 +2,8 @@
   <FullCalendar ref="fullCalendar" :options="calendarOptions" id="PFC">
   </FullCalendar>
 
-  <q-dialog v-model="icon">
+  <!-- 일정등록 -->
+  <q-dialog v-model="AddPlan">
     <q-card>
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">일정 추가하기</div>
@@ -18,7 +19,9 @@
       </q-card-section>
     </q-card>
   </q-dialog>
-  <q-dialog v-model="ModiDel">
+
+  <!-- 일정수정,삭제 -->
+  <q-dialog v-model="Chkplan">
     <q-card>
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">등록된 일정</div>
@@ -27,58 +30,52 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input id="subject" v-model="Ptitle" label="제목" />
-        <q-input id="SDay" type="date" v-model="StartDay" label="시작날짜" />
-        <q-input id="EDay" type="date" v-model="EndDay" label="끝나는날짜" />
-        <button @click="CreatePlan">등록하기</button>
+        <q-input id="subject" v-model="Ptitle" :readonly="editable" label="제목" />
+        <q-input id="SDay" type="date" v-model="StartDay" :readonly="editable" label="시작날짜" />
+        <q-input id="EDay" type="date" v-model="EndDay" :readonly="editable" label="끝나는날짜" />
+        <q-btn-group v-if="editable === false">
+          <q-btn label="수정하기" color="primary" @click="editable === false ? editable = true : editable = false;" />
+          <q-btn label="삭제하기" color="primary" @click="ConDel = true" />
+        </q-btn-group>
+        <q-btn-group v-else>
+          <q-btn label="수정하기" color="primary" @click="editable === false ? editable = true : editable = false;" />
+          <q-btn label="삭제하기" color="primary" @click="ConDel = true" />
+        </q-btn-group>
       </q-card-section>
     </q-card>
   </q-dialog>
-  <div>123</div>
-  <!-- <div v-for="item in " :key=item.title>
-    <span>{{ item }}</span>
-  </div> -->
+
+  <q-dialog v-model="ConDel" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <span class="q-ml-sm">{{ this.Ptitle }} 일정을 정말 삭제하시겠습니까?</span>
+      </q-card-section>
+
+      <q-card-actions>
+        <q-btn flat label="취소" color="primary" v-close-popup />
+        <q-btn flat label="삭제" color="primary" v-close-popup @click="DelPlan(true)" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script>
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { createEventId } from './event-utils';
-// import { INITIAL_EVENTS, createEventId } from './event-utils';
 import { ref } from 'vue';
 
+import { INITIAL_EVENTS, createEventId } from './event-utils';
 // 파이어베이스에서 oTodosinDB 객체 변수 가져옴
 import { database, oTodosinDB } from 'src/datasources/firebase';
 // 파이어스토어 모듈객체 가져오기
 import { doc, deleteDoc, updateDoc, setDoc, getDocs, collection } from "firebase/firestore";
-// let PEvents = [];
-// let GetEvent = async function () {
-//   let querySnapshot = await getDocs(oTodosinDB);
-//   querySnapshot.forEach((doc) => {
 
-//     PEvents.push(doc.data());
-//     // console.log(doc.data());
-//   });
-//   //   return PEvents;
-// };
-let getEvent = async function () {
-  const todoTextList = [];
-  let querySnapshot = await getDocs(oTodosinDB);
-  querySnapshot.forEach((doc) => {
-    todoTextList.push(doc.data()); // DB정보 배열로 가져오기
-    console.log(doc.data()['todo_title']); // DB정보 제목만 찍기
-  });
-  console.log(todoTextList);
-};
-// GetEvent();
 export default {
   components: {
     FullCalendar // make the <FullCalendar> tag available
   },
   data() {
-    console.log(oTodosinDB);
-    getEvent();
     return {
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
@@ -90,8 +87,9 @@ export default {
         locale: 'ko',
         initialView: 'dayGridMonth',
         // 기본값으로 설정하는 이벤트 추후 db연동 세팅
-        initialEvents: PEvents,
-        // initialEvents: INITIAL_EVENTS,
+        // initialEvents: DBevent,
+        // initialEvents: this.InitialEvent,
+        events: function () { return INITIAL_EVENTS(); },
         timeZone: 'local',
         editable: true,
         selectable: true,
@@ -106,20 +104,29 @@ export default {
   },
   firestore: { oTodos: oTodosinDB },
   methods: {
-    handleDateClick: function (arg) {
-      console.log(arg);
-    },
     handleDateSelect(selectInfo) {
-
+      this.Ptitle = '';
       this.StartDay = selectInfo.startStr;
       this.EndDay = selectInfo.endStr;
 
       this.Info = selectInfo;
-      this.icon = true;
+      this.AddPlan = true;
+      console.log(selectInfo);
     },
     handleEventClick(clickInfo) {
-      console.log(clickInfo.event.startStr);
-      createEventId();
+      this.Chkplan = true;
+      this.Ptitle = '';
+
+      this.Ptitle = clickInfo.event.title;
+      this.StartDay = clickInfo.event.startStr;
+      this.EndDay = clickInfo.event.endStr;
+      this.FindId = clickInfo.event.id;
+
+      this.Info = clickInfo;
+
+      // console.log(calendarApi.getEventById(clickInfo.event.id));
+      // console.log(clickInfo.event.getEvents());
+      // createEventId();
       // if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
       //   clickInfo.event.remove();
       // }
@@ -127,7 +134,6 @@ export default {
     CreatePlan() {
       let calendarApi = this.Info.view.calendar;
       // calendarApi = calendarApi.view.calendar;
-
       let subject = this.Ptitle;
       // 유효성검사시 공백란 제거 필요
       if (subject !== '') {
@@ -138,19 +144,27 @@ export default {
           end: this.EndDay,
           allDay: true,
         });
-        this.fnSaveEdit(this.Info);
-        this.Ptitle = '';
-        this.icon = false;
+        this.ToDoSave(this.Info);
+
+        this.AddPlan = false;
         console.log(this.Info);
       }
-      else {
+    },
+    DelPlan(val) {
+      if (val === true) {
+        let subject = this.Ptitle;
+        if (subject !== '') {
+          this.ToDoDelete(this.Ptitle);
+          this.Info.event.remove();
+          this.Chkplan = false;
+        }
       }
     },
+    ModifyPlan() {
 
-    // deleteDoc(doc(db, 'doc', 'id')) 전달된 할 일을 DB에서 제거
-    fnRemoveTodo(pKey) {
-      deleteDoc(doc(database, 'Lists', pKey));
     },
+    // deleteDoc(doc(db, 'doc', 'id')) 전달된 할 일을 DB에서 제거
+
     // updateDoc(doc(db, 'doc', 'id'),{필드수정}) 전달된 할 일의 b_edit를 수정모드로 변경
     fnSetEditTodo(pKey) {
       updateDoc(doc(database, 'Lists', pKey), { b_edit: true });
@@ -167,29 +181,41 @@ export default {
       });
     }
   },
-
   setup() {
-    let icon = ref(false);
-    let ModiDel = ref(false);
+    let AddPlan = ref(false);
+    let Chkplan = ref(false);
+    let ConDel = ref(false);
+
     let StartDay = ref('');
     let EndDay = ref('');
     let Info = ref('');
     let Ptitle = ref('');
-    let item = [];
-    // updateDoc(doc(db, 'doc', 'id'),{필드수정}) 전달된 할 일의 수정값을 DB에 저장
-    let fnSaveEdit = function (Info) {
+    let FindId = ref('');
+
+    let editable = ref(true);
+    let editBtn = ref('');
+    // firebase 저장
+    let ToDoSave = function (Info) {
       const pKey = this.Ptitle;
       setDoc(doc(database, 'Lists', pKey), {
-        id: createEventId(),
+        id: createEventId,
         title: pKey,
         start: Info.startStr,
         end: Info.endStr,
         allDay: Info.allDay,
       });
     };
+    // firebase 삭제
+    let ToDoDelete = function (pKey) {
+      deleteDoc(doc(database, 'Lists', pKey));
+    };
+
 
     return {
-      icon, StartDay, EndDay, Ptitle, Info, ModiDel, fnSaveEdit,
+      AddPlan, Chkplan, ConDel,
+      StartDay, EndDay, Ptitle, Info, FindId,
+      editable, editBtn,
+      ToDoSave, ToDoDelete,
     };
   }
 };
@@ -202,4 +228,5 @@ console.log();
 //       allow create: if request.auth != null;
 //     }
 //   }
+
 </script>
