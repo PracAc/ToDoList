@@ -2,7 +2,7 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('layouts/Header.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') }
     ]
@@ -14,6 +14,6 @@ const routes = [
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue')
   }
-]
+];
 
-export default routes
+export default routes;

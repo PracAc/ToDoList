@@ -20,8 +20,18 @@ export async function INITIAL_EVENTS() {
     return todoTextList;
 };
 
+export async function FINISH_CHK() {
+    const todoFinishList = [];
+    let querySnapshot = await getDocs(oTodosinDB);
+    querySnapshot.forEach(function (doc) {
+        if (doc.data().finishChk === true) {
+            todoFinishList.push(doc.data().value); // DB정보 배열로 가져오기
+        }
+    });
+    return todoFinishList;
+}
+
 export function createEventId() {
-    console.log(eventGuid);
     return String(eventGuid++);
 }
 
