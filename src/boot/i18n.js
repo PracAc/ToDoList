@@ -13,6 +13,6 @@ export default boot(({ app }) => {
     messages
   });
 
-  // Set i18n instance on app, set vuefire
+  // Set i18n instance on app
   app.use(i18n);
 });

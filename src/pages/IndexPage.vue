@@ -4,9 +4,9 @@
 
   <!-- 일정등록 -->
   <q-dialog v-model="AddPlan">
-    <q-card>
+    <q-card class="ModalCard">
       <q-card-section class="row items-center q-pb-none">
-        <div class="text-h6">일정 추가하기</div>
+        <div class="text-h6 text-blue-5">일정 추가하기</div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
@@ -15,14 +15,31 @@
         <q-input id="subject" v-model="Ptitle" label="제목" />
         <q-input id="SDay" type="date" v-model="StartDay" label="시작날짜" />
         <q-input id="EDay" type="date" v-model="EndDay" label="끝나는날짜" />
-        <q-btn label="등록하기" color="primary" @click="CreatePlan"></q-btn>
+        <q-expansion-item label="추가항목 입력" @click="MoreOpt = !MoreOpt;">
+          <q-card>
+            <q-card-section class="no-padding">
+              <q-list>
+                <q-item tag="label">
+                  <q-item-section>
+                    <q-input type="text" v-model="Price" label="사용금액" />
+                    <q-input type="textarea" v-model="Description" label="설명" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item>
       </q-card-section>
+
+      <q-btn-group spread class="q-mt-sm">
+        <q-btn label="등록하기" color="blue-6" @click="CreatePlan"></q-btn>
+      </q-btn-group>
     </q-card>
   </q-dialog>
 
   <!-- 일정수정,삭제 -->
   <q-dialog v-model="Chkplan">
-    <q-card>
+    <q-card class="ModalCard">
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">등록된 일정</div>
         <q-space />
@@ -30,81 +47,35 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input id="subject" v-model="Ptitle" :readonly="ModifyChk" label="제목" />
-        <q-input id="SDay" type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
-        <q-input id="EDay" type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
-        <q-btn-group v-if="ModifyChk === true">
-          <q-btn label="수정하기" color="primary" @click="ModifyChk === false ? ModifyChk = true : ModifyChk = false;" />
-          <q-btn label="삭제하기" color="primary" @click="ConDel = true" />
-        </q-btn-group>
-        <q-btn-group v-else>
-          <q-btn label="수정완료" color="primary" @click="ModifyPlan" />
-          <q-btn label="삭제하기" color="primary" @click="ConDel = true" />
-        </q-btn-group>
+        <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
+        <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
+        <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
+        <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
+        <q-input type="textarea" v-model="Description" :readonly="ModifyChk" label="설명" />
       </q-card-section>
+      <q-btn-group v-if="ModifyChk === true" spread class="q-mt-sm">
+        <q-btn label="수정하기" color="blue-5" @click="ModifyChk === false ? ModifyChk = true : ModifyChk = false;" />
+        <q-btn label="삭제하기" color="red-4" @click="ConDel = true" />
+      </q-btn-group>
+      <q-btn-group v-else spread class="q-mt-sm">
+        <q-btn label="수정완료" color="blue-5" @click="ModifyPlan" />
+        <q-btn label="삭제하기" color="red-4" @click="ConDel = true" />
+      </q-btn-group>
     </q-card>
   </q-dialog>
 
   <q-dialog v-model="ConDel" persistent>
     <q-card>
       <q-card-section class="row items-center">
-        <span class="q-ml-sm">{{ this.Ptitle }} 일정을 정말 삭제하시겠습니까?</span>
+        <span class="q-ml-sm"><span class="text-red-5">{{ this.Ptitle }}</span> 일정을 정말 삭제하시겠습니까?</span>
       </q-card-section>
 
       <q-card-actions>
         <q-btn flat label="취소" color="primary" v-close-popup />
-        <q-btn flat label="삭제" color="primary" v-close-popup @click="DelPlan(true)" />
+        <q-btn flat label="삭제" color="red-5" v-close-popup @click="DelPlan(true)" />
       </q-card-actions>
     </q-card>
   </q-dialog>
-
-  <!-- <q-table flat bordered title="목록" :rows="TableRow" :columns="columns" row-key="id">
-    <template v-slot:header="props">
-      <q-tr :props="props">
-        <q-th auto-width />
-        <q-th v-for="col in props.cols" :key="col.name" :props="props">
-          {{ col.label }}
-        </q-th>
-      </q-tr>
-    </template>
-
-    <template v-slot:body="props">
-      <q-tr :props="props">
-        <q-td auto-width>
-          <q-btn size="sm" color="accent" round dense @click="props.expand = !props.expand"
-            :icon="props.expand ? 'remove' : 'add'" />
-        </q-td>
-        <q-td v-for="col in props.cols" :key="col.name" :props="props">
-          {{ col.value }}
-        </q-td>
-      </q-tr>
-      <q-tr v-show="props.expand" :props="props">
-        <q-td colspan="100%">
-          <div class="text-left">This is expand slot for row above: {{ props.row.name }}.</div>
-        </q-td>
-      </q-tr>
-    </template>
-  </q-table> -->
-  <div class="q-pa-md" style="max-width: 350px">
-    <q-list bordered padding>
-
-      <q-item tag="label" v-ripple v-for="item in this.oTodos" :key=item.key>
-        <q-item-section side>
-          <q-checkbox v-model="ListChk" :val=item.value />
-        </q-item-section>
-
-        <q-item-section>
-          <q-item-label>{{ item.title }}</q-item-label>
-          <q-item-label caption>
-            시작날짜 : {{ item.start }}
-          </q-item-label>
-          <q-item-label caption>
-            끝나는날짜 : {{ item.end }}
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-    </q-list>
-  </div>
 </template>
 
 <script>
@@ -128,9 +99,9 @@ export default {
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         headerToolbar: {
-          left: 'prev,next today',
+          left: 'prev today',
           center: 'title',
-          right: 'dayGridMonth'
+          right: 'next'
         },
         locale: 'ko',
         initialView: 'dayGridMonth',
@@ -144,7 +115,6 @@ export default {
         selectMirror: true,
         dayMaxEvents: true,
         weekends: true,
-        dateClick: this.handleDateClick,
         select: this.handleDateSelect,
         eventClick: this.handleEventClick,
       },
@@ -154,6 +124,7 @@ export default {
       AddPlan: ref(false),
       Chkplan: ref(false),
       ConDel: ref(false),
+      MoreOpt: ref(false),
 
       // 모달안 인풋부분 설정변수
       StartDay: ref(''),
@@ -161,29 +132,44 @@ export default {
       Info: ref(''),
       Ptitle: ref(''),
       FindId: ref(''),
+      Price: ref(''),
+      Description: ref(''),
 
       // 수정설정 변수
       ModifyChk: ref(true),
 
-      ListChk: ref([]),
+
     };
   },
   firestore: { oTodos: oTodosinDB },
   methods: {
     // 캘린더 이벤트 함수
     handleDateSelect(selectInfo) {
+      // 값초기화
       this.Ptitle = '';
+      this.Price = '';
+      this.Description = '';
+      this.MoreOpt = false;
       this.StartDay = selectInfo.startStr;
       this.EndDay = selectInfo.endStr;
-
       this.Info = selectInfo;
+
+      // 모달 show
       this.AddPlan = true;
-      console.log(selectInfo.endStr);
     },
     handleEventClick(clickInfo) {
+      // 모달 show
       this.Chkplan = true;
-      this.Ptitle = '';
 
+      // 값초기화
+      this.Ptitle = '';
+      this.StartDay = '';
+      this.EndDay = '';
+      this.FindId = '';
+      this.Info = '';
+
+      // filter 사용해서해당 db값 otdos에서가져오기
+      console.log();
       this.Ptitle = clickInfo.event.title;
       this.StartDay = clickInfo.event.startStr;
       this.EndDay = clickInfo.event.endStr;
@@ -232,24 +218,41 @@ export default {
         start: this.StartDay,
         end: this.EndDay,
         allDay: true,
+        description: this.Description,
+        price: this.Price
       });
       this.ToDoUpdate(this.Info);
+
       this.ModifyChk = true;
+      this.Chkplan = false;
     },
 
     // firebase 저장,삭제,수정 함수
     ToDoSave(Info) {
       const pKey = createEventId();
-      setDoc(doc(database, 'Lists', pKey), {
-        id: pKey,
-        title: this.Ptitle,
-        start: Info.startStr,
-        end: Info.endStr,
-        allDay: Info.allDay,
-        value: this.Ptitle + Info.startStr,
-        important: false,
-        finishChk: false
-      });
+      if (this.MoreOpt === true) {
+        setDoc(doc(database, 'Lists', pKey), {
+          id: pKey,
+          title: this.Ptitle,
+          start: Info.startStr,
+          end: Info.endStr,
+          allDay: Info.allDay,
+          important: false,
+          finishChk: false,
+          description: this.Description,
+          consume: this.Price
+        });
+      } else {
+        setDoc(doc(database, 'Lists', pKey), {
+          id: pKey,
+          title: this.Ptitle,
+          start: Info.startStr,
+          end: Info.endStr,
+          allDay: Info.allDay,
+          important: false,
+          finishChk: false
+        });
+      }
     },
     ToDoDelete(pKey) {
       deleteDoc(doc(database, 'Lists', pKey));
@@ -260,7 +263,6 @@ export default {
         title: this.Ptitle,
         start: this.StartDay,
         end: this.EndDay,
-        value: this.Ptitle + this.StartDay
       });
     },
   },
