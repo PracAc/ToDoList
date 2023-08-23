@@ -1,5 +1,5 @@
 <template>
-  <FullCalendar ref="fullCalendar" :options="calendarOptions" id="PFC">
+  <FullCalendar ref="fullCalendar" :options="calendarOptions">
   </FullCalendar>
 
   <!-- 일정등록 -->
@@ -15,20 +15,43 @@
         <q-input id="subject" v-model="Ptitle" label="제목" />
         <q-input id="SDay" type="date" v-model="StartDay" label="시작날짜" />
         <q-input id="EDay" type="date" v-model="EndDay" label="끝나는날짜" />
-        <q-expansion-item label="추가항목 입력" @click="MoreOpt = !MoreOpt;">
+        <q-toggle :label="`추가항목 설정`" v-model="AddMore" />
+        <q-input bottom-slots label="항목명" :disable="!AddMore" v-model="MoreTitle">
+          <template v-slot:append>
+            <q-btn round dense flat icon="add" color="blue-5" @click="CreateMore" />
+          </template>
+        </q-input>
+
+        <q-expansion-item v-for="Mitem in this.MoreArr" :label="Mitem.moretitle" :key=Mitem.key group="MoreOptGroup"
+          caption="상세 설정">
           <q-card>
             <q-card-section class="no-padding">
               <q-list>
                 <q-item tag="label">
                   <q-item-section>
-                    <q-input type="text" v-model="Price" label="사용금액" />
-                    <q-input type="textarea" v-model="Description" label="설명" />
+                    <q-input type="text" v-model="Mitem.moreprice" label="사용금액" />
+                    <q-input type="text" v-model="Mitem.moredescription" label="설명" />
+                    <q-btn class="q-mt-sm" label="항목 삭제" color="red-4" @click="DelMore(Mitem.id)" />
                   </q-item-section>
                 </q-item>
               </q-list>
             </q-card-section>
           </q-card>
         </q-expansion-item>
+        <!-- <q-expansion-item :label="MoreTitle" right-icon="add">
+          <q-card>
+            <q-card-section class="no-padding">
+              <q-list>
+                <q-item tag="label">
+                  <q-item-section>
+                    <q-input type="text" v-model="Price" label="사용금액" />
+                    <q-input type="textarea" v-model="ConDescription" label="설명" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item> -->
       </q-card-section>
 
       <q-btn-group spread class="q-mt-sm">
@@ -39,25 +62,71 @@
 
   <!-- 일정수정,삭제 -->
   <q-dialog v-model="Chkplan">
-    <q-card class="ModalCard">
+    <!-- 입력된 일정 확인부분 -->
+    <q-card class="ModalCard" v-if="ModifyChk === true">
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">등록된 일정</div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section>
+      <q-card-section v-if="addModify === true">
         <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
         <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
         <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
         <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
-        <q-input type="textarea" v-model="Description" :readonly="ModifyChk" label="설명" />
+        <q-input type="textarea" v-model="ConDescription" :readonly="ModifyChk" label="설명" />
       </q-card-section>
-      <q-btn-group v-if="ModifyChk === true" spread class="q-mt-sm">
-        <q-btn label="수정하기" color="blue-5" @click="ModifyChk === false ? ModifyChk = true : ModifyChk = false;" />
+
+      <q-card-section v-else>
+        <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
+        <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
+        <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
+      </q-card-section>
+
+      <q-btn-group spread class="q-mt-sm">
+        <q-btn label="수정하기" color="blue-5" @click="ModifyChk = false" />
         <q-btn label="삭제하기" color="red-4" @click="ConDel = true" />
       </q-btn-group>
-      <q-btn-group v-else spread class="q-mt-sm">
+    </q-card>
+
+    <!-- 입력된 일정 수정부분 -->
+    <q-card class="ModalCard" v-else>
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6">등록된 일정</div>
+        <q-space />
+        <q-btn icon="close" flat round dense v-close-popup />
+      </q-card-section>
+
+      <q-card-section v-if="addModify === true">
+        <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
+        <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
+        <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
+        <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
+        <q-input type="textarea" v-model="ConDescription" :readonly="ModifyChk" label="설명" />
+      </q-card-section>
+
+      <q-card-section v-else>
+        <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
+        <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
+        <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
+        <q-expansion-item label="추가항목 입력(소비내용)" @click="MoreOpt = !MoreOpt;">
+          <q-card>
+            <q-card-section class="no-padding">
+              <q-list>
+                <q-item tag="label">
+                  <q-item-section>
+                    <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
+                    <q-input type="textarea" v-model="ConDescription" :readonly="ModifyChk" label="설명" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item>
+      </q-card-section>
+
+      <q-btn-group spread class="q-mt-sm">
         <q-btn label="수정완료" color="blue-5" @click="ModifyPlan" />
         <q-btn label="삭제하기" color="red-4" @click="ConDel = true" />
       </q-btn-group>
@@ -86,7 +155,7 @@ import { ref } from 'vue';
 
 import { INITIAL_EVENTS, createEventId } from './event-utils';
 // 파이어베이스에서 oTodosinDB 객체 변수 가져옴
-import { database, oTodosinDB } from 'src/datasources/firebase';
+import { database, oTodosinDB } from 'src/boot/firebase';
 // 파이어스토어 모듈객체 가져오기
 import { doc, deleteDoc, updateDoc, setDoc } from "firebase/firestore";
 
@@ -125,6 +194,7 @@ export default {
       Chkplan: ref(false),
       ConDel: ref(false),
       MoreOpt: ref(false),
+      AddMore: ref(false),
 
       // 모달안 인풋부분 설정변수
       StartDay: ref(''),
@@ -133,11 +203,17 @@ export default {
       Ptitle: ref(''),
       FindId: ref(''),
       Price: ref(''),
-      Description: ref(''),
+      ConDescription: ref(''),
 
+      MoreArr: new Array(),
+      MoreTitle: ref(''),
+      MorePrice: ref(''),
+      MoreDescription: ref(''),
+      Increase: ref(0),
+      test: ref(true),
       // 수정설정 변수
       ModifyChk: ref(true),
-
+      addModify: ref(false)
 
     };
   },
@@ -148,7 +224,8 @@ export default {
       // 값초기화
       this.Ptitle = '';
       this.Price = '';
-      this.Description = '';
+      this.ConDescription = '';
+      this.Price = '';
       this.MoreOpt = false;
       this.StartDay = selectInfo.startStr;
       this.EndDay = selectInfo.endStr;
@@ -160,22 +237,33 @@ export default {
     handleEventClick(clickInfo) {
       // 모달 show
       this.Chkplan = true;
+      this.ModifyChk = true;
+      this.MoreOpt = false;
 
       // 값초기화
+      this.addModify = false;
       this.Ptitle = '';
       this.StartDay = '';
       this.EndDay = '';
       this.FindId = '';
       this.Info = '';
+      this.Price = '';
+      this.ConDescription = '';
 
       // filter 사용해서해당 db값 otdos에서가져오기
-      console.log();
+      let FindTodo = this.oTodos.filter((item) => item.id == clickInfo.event.id);
+      if (FindTodo[0].descriptionC !== '' || FindTodo[0].consume !== '') {
+        this.addModify = true;
+        this.Price = FindTodo[0].consume;
+        this.ConDescription = FindTodo[0].description;
+      }
       this.Ptitle = clickInfo.event.title;
       this.StartDay = clickInfo.event.startStr;
       this.EndDay = clickInfo.event.endStr;
       this.FindId = clickInfo.event.id;
 
       this.Info = clickInfo;
+
     },
 
     // 버튼이벤트 함수
@@ -218,8 +306,6 @@ export default {
         start: this.StartDay,
         end: this.EndDay,
         allDay: true,
-        description: this.Description,
-        price: this.Price
       });
       this.ToDoUpdate(this.Info);
 
@@ -239,7 +325,7 @@ export default {
           allDay: Info.allDay,
           important: false,
           finishChk: false,
-          description: this.Description,
+          descriptionC: this.ConDescription,
           consume: this.Price
         });
       } else {
@@ -259,56 +345,44 @@ export default {
     },
     ToDoUpdate() {
       const pKey = this.FindId;
-      updateDoc(doc(database, 'Lists', pKey), {
-        title: this.Ptitle,
-        start: this.StartDay,
-        end: this.EndDay,
-      });
+      if (this.MoreOpt === true && this.ConDescription !== '' || this.Price !== '') {
+        updateDoc(doc(database, 'Lists', pKey), {
+          title: this.Ptitle,
+          start: this.StartDay,
+          end: this.EndDay,
+          descriptionC: this.ConDescription,
+          consume: this.Price
+        });
+      } else {
+        updateDoc(doc(database, 'Lists', pKey), {
+          title: this.Ptitle,
+          start: this.StartDay,
+          end: this.EndDay,
+        });
+      }
     },
+    CreateMore() {
+      if (this.AddMore && this.MoreTitle !== '') {
+        this.MoreArr.push(
+          {
+            id: this.Increase,
+            moretitle: this.MoreTitle,
+            moreprice: '',
+            moredescription: '',
+          });
+        this.MoreTitle = '';
+        this.Increase = this.Increase + 1;
+      }
+    },
+    DelMore(key) {
+      let FindObj_i = this.MoreArr.findIndex((obj) => obj.id === key);
+      // console.log(FindObj.id);
+      this.MoreArr.splice(FindObj_i, 1);
+      this.test = false;
+    }
   },
   setup() {
-    // let AddPlan, Chkplan, ConDel = ref(false);
-
-    // let StartDay, EndDay, Info, Ptitle, FindId = ref('');
-
-    // let ModifyChk = ref(true);
-    // let editBtn = ref('');
-
-    // let TableRow = ref(INITIAL_EVENTS());
-    // firebase 저장
-    // let ToDoSave = function (Info) {
-    //   const pKey = createEventId();
-    //   setDoc(doc(database, 'Lists', pKey), {
-    //     id: pKey,
-    //     title: this.Ptitle,
-    //     start: Info.startStr,
-    //     end: Info.endStr,
-    //     allDay: Info.allDay,
-    //   });
-    // };
-    // firebase 삭제
-    // let ToDoDelete = function (pKey) {
-    //   deleteDoc(doc(database, 'Lists', pKey));
-    // };
-    // let ToDoUpdate = function () {
-    //   const pKey = this.FindId;
-    //   updateDoc(doc(database, 'Lists', pKey), {
-    //     title: this.Ptitle,
-    //     start: this.StartDay,
-    //     end: this.EndDay,
-    //   });
-    // };
-
-    // const Inner = INITIAL_EVENTS();
-    // Inner.then((result) => {
-    //   TableRow = result;
-    //   // return result;
-    // });
     return {
-      // AddPlan, Chkplan, ConDel
-      // StartDay, EndDay, Ptitle, Info, FindId,
-      // ModifyChk, editBtn,
-      // ToDoSave, ToDoDelete, ToDoUpdate
     };
   }
 };

@@ -1,7 +1,7 @@
 let eventGuid = 0;
 
 // 파이어베이스 앱 객체 모듈 가져오기
-import { database, oTodosinDB } from 'src/datasources/firebase';
+import { database, oTodosinDB } from 'src/boot/firebase';
 import { doc, collection, getDocs } from "firebase/firestore";
 
 export async function INITIAL_EVENTS() {

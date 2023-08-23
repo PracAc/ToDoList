@@ -91,10 +91,6 @@
 
         </q-list>
       </q-scroll-area>
-      <div class="q-px-sm q-mt-sm">
-        Your selection is: <strong>{{ ListChk }}</strong><br>
-        Your selection is: <strong>{{ ImportChk }}</strong>
-      </div>
     </q-drawer>
     <q-page-container>
       <router-view />
@@ -105,7 +101,7 @@
 <script>
 import { defineComponent, ref } from 'vue';
 
-import { database, oTodosinDB } from 'src/datasources/firebase';
+import { database, oTodosinDB } from 'src/boot/firebase';
 import { doc, deleteDoc, updateDoc, setDoc, getDoc, getDocs } from "firebase/firestore";
 
 
