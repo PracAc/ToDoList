@@ -12,47 +12,67 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input id="subject" v-model="Ptitle" label="제목" />
-        <q-input id="SDay" type="date" v-model="StartDay" label="시작날짜" />
-        <q-input id="EDay" type="date" v-model="EndDay" label="끝나는날짜" />
-        <q-toggle :label="`추가항목 설정`" v-model="AddMore" />
-        <q-input bottom-slots label="항목명" :disable="!AddMore" v-model="MoreTitle">
-          <template v-slot:append>
+        <q-input v-model="Ptitle" label="제목" />
+        <q-input type="date" v-model="StartDay" label="시작날짜" />
+        <q-input type="date" v-model="EndDay" label="끝나는날짜" />
+        <q-toggle label="추가항목 설정" v-model="AddMore" />
+
+        <q-expansion-item v-for="Mitem in this.MoreArr" :label="Mitem.moretitle" :key=Mitem.key group="MoreOptGroup"
+          caption="상세 설정" :disable="!AddMore">
+          <template v-slot:after>
+            <q-btn round dense flat icon="expand_more" color="blue-5" v-model="test" @click="test = !test" />
+            <q-btn round dense flat icon="remove" color="red-4" />
+          </template>
+          <q-item-section>
+            <q-input type="text" v-model="Mitem.moreprice" label="사용금액" />
+            <q-input type="text" v-model="Mitem.moredescription" label="설명" />
+            <q-btn class="q-mt-sm" label="항목 삭제" color="red-4" @click="DelMore(Mitem.id)" />
+          </q-item-section>
+        </q-expansion-item>
+
+        <q-input label="항목명" v-show="AddMore" v-model="MoreTitle">
+          <template v-slot:after>
             <q-btn round dense flat icon="add" color="blue-5" @click="CreateMore" />
           </template>
         </q-input>
 
-        <q-expansion-item v-for="Mitem in this.MoreArr" :label="Mitem.moretitle" :key=Mitem.key group="MoreOptGroup"
-          caption="상세 설정">
-          <q-card>
-            <q-card-section class="no-padding">
-              <q-list>
-                <q-item tag="label">
-                  <q-item-section>
-                    <q-input type="text" v-model="Mitem.moreprice" label="사용금액" />
-                    <q-input type="text" v-model="Mitem.moredescription" label="설명" />
-                    <q-btn class="q-mt-sm" label="항목 삭제" color="red-4" @click="DelMore(Mitem.id)" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card-section>
-          </q-card>
-        </q-expansion-item>
-        <!-- <q-expansion-item :label="MoreTitle" right-icon="add">
-          <q-card>
-            <q-card-section class="no-padding">
-              <q-list>
-                <q-item tag="label">
-                  <q-item-section>
-                    <q-input type="text" v-model="Price" label="사용금액" />
-                    <q-input type="textarea" v-model="ConDescription" label="설명" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card-section>
-          </q-card>
-        </q-expansion-item> -->
+        <q-input label="항목명">
+          <template v-slot:after>
+            <q-btn round dense flat icon="expand_more" color="blue-5" v-model="test" @click="test = !test" />
+            <q-btn round dense flat icon="remove" color="red-4" />
+          </template>
+        </q-input>
+        <q-slide-transition v-show="test">
+          <div>
+            <q-input type="text" label="설명" />
+            <q-input type="text" label="사용금액" />
+          </div>
+        </q-slide-transition>
+
+        <!-- <q-card bordered>
+
+          <q-card-section>
+            <q-input label="항목명">
+              <template v-slot:after>
+                <q-btn color="blue-5" round flat dense :icon="test ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                  @click="test = !test" />
+                <q-btn round dense flat icon="remove" color="red-4" />
+              </template>
+            </q-input>
+          </q-card-section>
+          <q-slide-transition>
+            <div v-show="test">
+              <q-separator />
+              <q-card-section class="text-subtitle2">
+                <q-input type="text" label="사용금액" />
+                <q-input type="text" label="설명" />
+              </q-card-section>
+            </div>
+          </q-slide-transition>
+        </q-card> -->
+
       </q-card-section>
+
 
       <q-btn-group spread class="q-mt-sm">
         <q-btn label="등록하기" color="blue-6" @click="CreatePlan"></q-btn>
@@ -70,12 +90,26 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section v-if="addModify === true">
+      <q-card-section v-if="MoreListChk === true">
         <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
         <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
         <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
-        <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
-        <q-input type="textarea" v-model="ConDescription" :readonly="ModifyChk" label="설명" />
+        <q-toggle :label="`추가항목보기`" v-model="ShowList" />
+        <q-expansion-item v-show="ShowList" v-for="Mitem in this.MoreArr" :label="Mitem.moretitle" :key=Mitem.key
+          group="MoreOptGroup" caption="상세 보기">
+          <q-card>
+            <q-card-section class="no-padding">
+              <q-list>
+                <q-item tag="label">
+                  <q-item-section>
+                    <q-input type="text" v-model="Mitem.moreprice" :readonly="MoreListChk" label="사용금액" />
+                    <q-input type="text" v-model="Mitem.moredescription" :readonly="MoreListChk" label="설명" />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item>
       </q-card-section>
 
       <q-card-section v-else>
@@ -98,26 +132,29 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section v-if="addModify === true">
-        <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
-        <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
-        <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
-        <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
-        <q-input type="textarea" v-model="ConDescription" :readonly="ModifyChk" label="설명" />
-      </q-card-section>
+      <q-card-section>
+        <q-input id="subject" v-model="Ptitle" label="제목" />
+        <q-input id="SDay" type="date" v-model="StartDay" label="시작날짜" />
+        <q-input id="EDay" type="date" v-model="EndDay" label="끝나는날짜" />
+        <q-toggle :label="`추가항목 설정`" v-model="AddMore" />
 
-      <q-card-section v-else>
-        <q-input v-model="Ptitle" :readonly="ModifyChk" label="제목" />
-        <q-input type="date" v-model="StartDay" :readonly="ModifyChk" label="시작날짜" />
-        <q-input type="date" v-model="EndDay" :readonly="ModifyChk" label="끝나는날짜" />
-        <q-expansion-item label="추가항목 입력(소비내용)" @click="MoreOpt = !MoreOpt;">
+        <q-input bottom-slots label="항목명" :disable="!AddMore" v-model="MoreTitle">
+          <template v-slot:append>
+            <q-btn round dense flat icon="add" color="blue-5" @click="CreateMore" />
+          </template>
+        </q-input>
+
+        <q-expansion-item v-for="Mitem in this.MoreArr" :label="Mitem.moretitle" :key=Mitem.key group="MoreOptGroup"
+          caption="상세 설정">
           <q-card>
             <q-card-section class="no-padding">
               <q-list>
                 <q-item tag="label">
                   <q-item-section>
-                    <q-input type="text" v-model="Price" :readonly="ModifyChk" label="사용금액" />
-                    <q-input type="textarea" v-model="ConDescription" :readonly="ModifyChk" label="설명" />
+                    <q-input :readonly="!AddMore" v-model="Mitem.moreprice" type="text" label="사용금액" />
+                    <q-input :readonly="!AddMore" v-model="Mitem.moredescription" type="text" label="설명" />
+                    <q-btn :disable="!AddMore" class="q-mt-sm" label="항목 삭제" color="red-4"
+                      @click="DelMore(Mitem.moreid)" />
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -128,11 +165,11 @@
 
       <q-btn-group spread class="q-mt-sm">
         <q-btn label="수정완료" color="blue-5" @click="ModifyPlan" />
-        <q-btn label="삭제하기" color="red-4" @click="ConDel = true" />
       </q-btn-group>
     </q-card>
   </q-dialog>
 
+  <!-- 삭제 prompt -->
   <q-dialog v-model="ConDel" persistent>
     <q-card>
       <q-card-section class="row items-center">
@@ -205,20 +242,20 @@ export default {
       Price: ref(''),
       ConDescription: ref(''),
 
-      MoreArr: new Array(),
+      MoreArr: ref([]),
       MoreTitle: ref(''),
-      MorePrice: ref(''),
-      MoreDescription: ref(''),
-      Increase: ref(0),
-      test: ref(true),
+      MoreIncrease: ref(0),
+      ShowList: ref(false),
+      test: ref(false),
       // 수정설정 변수
       ModifyChk: ref(true),
-      addModify: ref(false)
+      MoreListChk: ref(false)
 
     };
   },
   firestore: { oTodos: oTodosinDB },
   methods: {
+
     // 캘린더 이벤트 함수
     handleDateSelect(selectInfo) {
       // 값초기화
@@ -231,9 +268,16 @@ export default {
       this.EndDay = selectInfo.endStr;
       this.Info = selectInfo;
 
+      // 추가항목 초기화
+      this.AddMore = false;
+      this.MoreArr = [];
+      this.MoreTitle = '';
+      this.MoreIncrease = 0;
+
       // 모달 show
       this.AddPlan = true;
     },
+
     handleEventClick(clickInfo) {
       // 모달 show
       this.Chkplan = true;
@@ -241,22 +285,20 @@ export default {
       this.MoreOpt = false;
 
       // 값초기화
-      this.addModify = false;
+      this.MoreListChk = false;
       this.Ptitle = '';
       this.StartDay = '';
       this.EndDay = '';
       this.FindId = '';
       this.Info = '';
-      this.Price = '';
-      this.ConDescription = '';
 
-      // filter 사용해서해당 db값 otdos에서가져오기
-      let FindTodo = this.oTodos.filter((item) => item.id == clickInfo.event.id);
-      if (FindTodo[0].descriptionC !== '' || FindTodo[0].consume !== '') {
-        this.addModify = true;
-        this.Price = FindTodo[0].consume;
-        this.ConDescription = FindTodo[0].description;
-      }
+      // 추가항목 초기화
+      this.AddMore = false;
+      this.MoreArr = [];
+      this.MoreTitle = '';
+      this.MoreIncrease = 0;
+      this.ShowList = false;
+
       this.Ptitle = clickInfo.event.title;
       this.StartDay = clickInfo.event.startStr;
       this.EndDay = clickInfo.event.endStr;
@@ -264,6 +306,18 @@ export default {
 
       this.Info = clickInfo;
 
+      // filter 사용해서해당 db값 otdos에서가져오기
+      let FindTodo = this.oTodos.filter((item) => item.id === clickInfo.event.id);
+      // console.log(FindTodo[0].morelist);
+      if (FindTodo[0].morelist.length >= 1) {
+        this.MoreListChk = true;
+        this.MoreArr = FindTodo[0].morelist;
+        this.MoreIncrease = this.MoreArr[this.MoreArr.length - 1].moreid;
+      } else {
+        this.MoreListChk = false;
+        this.MoreArr = [];
+      }
+      // console.log(this.MoreArr);
     },
 
     // 버튼이벤트 함수
@@ -281,7 +335,7 @@ export default {
           allDay: true,
         });
         this.ToDoSave(this.Info);
-
+        this.MoreArr = [];
         this.AddPlan = false;
         console.log(this.Info);
       }
@@ -307,16 +361,21 @@ export default {
         end: this.EndDay,
         allDay: true,
       });
-      this.ToDoUpdate(this.Info);
+      this.ToDoUpdate(this.FindId);
 
-      this.ModifyChk = true;
       this.Chkplan = false;
     },
 
     // firebase 저장,삭제,수정 함수
     ToDoSave(Info) {
       const pKey = createEventId();
-      if (this.MoreOpt === true) {
+      if (this.AddMore === true) {
+        console.log(this.MoreArr);
+        for (let moreitem of this.MoreArr) {
+          if (moreitem.moretitle === '') {
+            this.DelMore(moreitem.id);
+          }
+        }
         setDoc(doc(database, 'Lists', pKey), {
           id: pKey,
           title: this.Ptitle,
@@ -325,8 +384,7 @@ export default {
           allDay: Info.allDay,
           important: false,
           finishChk: false,
-          descriptionC: this.ConDescription,
-          consume: this.Price
+          morelist: this.MoreArr
         });
       } else {
         setDoc(doc(database, 'Lists', pKey), {
@@ -336,22 +394,21 @@ export default {
           end: Info.endStr,
           allDay: Info.allDay,
           important: false,
-          finishChk: false
+          finishChk: false,
+          morelist: []
         });
       }
     },
     ToDoDelete(pKey) {
       deleteDoc(doc(database, 'Lists', pKey));
     },
-    ToDoUpdate() {
-      const pKey = this.FindId;
-      if (this.MoreOpt === true && this.ConDescription !== '' || this.Price !== '') {
-        updateDoc(doc(database, 'Lists', pKey), {
+    async ToDoUpdate(pKey) {
+      if (this.AddMore === true) {
+        await updateDoc(doc(database, 'Lists', pKey), {
           title: this.Ptitle,
           start: this.StartDay,
           end: this.EndDay,
-          descriptionC: this.ConDescription,
-          consume: this.Price
+          morelist: this.MoreArr,
         });
       } else {
         updateDoc(doc(database, 'Lists', pKey), {
@@ -361,24 +418,27 @@ export default {
         });
       }
     },
+
+    // 추가항목 생성함수
     CreateMore() {
       if (this.AddMore && this.MoreTitle !== '') {
         this.MoreArr.push(
           {
-            id: this.Increase,
+            moreid: this.MoreIncrease,
             moretitle: this.MoreTitle,
             moreprice: '',
             moredescription: '',
           });
         this.MoreTitle = '';
-        this.Increase = this.Increase + 1;
+        this.MoreIncrease = this.MoreIncrease + 1;
       }
+      console.log(this.MoreArr);
     },
+    // 추가항목 삭제함수
     DelMore(key) {
-      let FindObj_i = this.MoreArr.findIndex((obj) => obj.id === key);
+      let FindObj_i = this.MoreArr.findIndex((obj) => obj.moreid === key);
       // console.log(FindObj.id);
       this.MoreArr.splice(FindObj_i, 1);
-      this.test = false;
     }
   },
   setup() {
