@@ -10,13 +10,13 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer side="right" v-model="drawerRight" show-if-above overlay :width="300" :breakpoint="300" bordered
+    <q-drawer side="right" v-model="drawerRight" show-if-above overlay :width="300" bordered
       :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'">
-      <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }">
-        <q-list padding>
+      <q-list>
 
-          <!-- 전체목록표시 -->
-          <q-expansion-item group="ListGroup" clickable default-opened icon="inbox" label="전체 리스트">
+        <!-- 전체목록표시 -->
+        <q-expansion-item group="ListGroup" clickable icon="inbox" label="전체 리스트">
+          <q-scroll-area style="height: 400px; max-width: 300px;">
             <q-card v-for="item in this.oTodos" :key=item.key>
               <q-card-section class="no-padding">
                 <q-list>
@@ -39,10 +39,12 @@
                 </q-list>
               </q-card-section>
             </q-card>
-          </q-expansion-item>
+          </q-scroll-area>
+        </q-expansion-item>
 
-          <!-- 중요한목록표시 -->
-          <q-expansion-item group="ListGroup" clickable icon="star" label="중요한 리스트">
+        <!-- 중요한목록표시 -->
+        <q-expansion-item group="ListGroup" clickable icon="star" label="중요한 리스트">
+          <q-scroll-area style="height: 300px; max-width: 300px;">
             <q-card v-for="item in this.oTodos" :key=item.key>
               <q-card-section class="no-padding">
                 <q-list>
@@ -65,10 +67,12 @@
                 </q-list>
               </q-card-section>
             </q-card>
-          </q-expansion-item>
+          </q-scroll-area>
+        </q-expansion-item>
 
-          <!-- 완료목록 표시 -->
-          <q-expansion-item group="ListGroup" class="fixed-bottom" clickable icon="add_task" label="완료한 리스트">
+        <!-- 완료목록 표시 -->
+        <q-expansion-item group="ListGroup" class="fixed-bottom" clickable icon="add_task" label="완료한 리스트">
+          <q-scroll-area style="height: 300px; max-width: 300px;">
             <q-card v-for="item in this.oTodos" :key=item.key>
               <q-card-section class="no-padding">
                 <q-list class="FinishList">
@@ -87,10 +91,10 @@
                 </q-list>
               </q-card-section>
             </q-card>
-          </q-expansion-item>
+          </q-scroll-area>
+        </q-expansion-item>
 
-        </q-list>
-      </q-scroll-area>
+      </q-list>
     </q-drawer>
     <q-page-container>
       <router-view />
@@ -133,7 +137,7 @@ export default defineComponent({
 
   },
   setup() {
-    const drawerRight = ref(true);
+    const drawerRight = ref(false);
 
     const FinishList = [];
     const ImportantList = [];
@@ -159,6 +163,7 @@ export default defineComponent({
       drawerRight, FinishList, ImportantList,
       toggleRightDrawer() {
         drawerRight.value = !drawerRight.value;
+
       },
 
     };

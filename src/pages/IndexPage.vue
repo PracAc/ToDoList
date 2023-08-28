@@ -15,7 +15,7 @@
         <q-input v-model="Ptitle" :rules="[ChkNull]" outlined dense hint="* 필수 입력" label="제목" />
         <q-input type="date" v-model="StartDay" dense label="시작날짜" />
         <q-input type="date" v-model="EndDay" dense label="끝나는날짜" />
-        <q-toggle v-model="AddMoreObj" label="추가항목 설정" />
+        <q-toggle v-model="AddMoreObj" label="추가항목(상세일정, 지출기록) 설정" />
 
         <q-list v-for="Mitem in this.MoreArr" :key=Mitem.key bordered class="q-pa-sm q-mb-sm" group="somegroup">
           <q-input dense v-model="Mitem.moretitle" :rules="[MoreExpandBtnOpt(Mitem)]" :disable="!AddMoreObj" label="항목명"
@@ -32,8 +32,8 @@
 
           <q-slide-transition v-if="AddMoreObj === true" v-show="Mitem.morechk">
             <div>
-              <q-input dense type="text" v-model="Mitem.moredescription" label="사용금액" />
-              <q-input dense type="text" v-model="Mitem.moreprice" label="설명" />
+              <q-input dense type="text" :rules="[ChkPrice]" v-model="Mitem.moreprice" label="사용금액" />
+              <q-input dense type="text" v-model="Mitem.moredescription" label="설명" />
             </div>
           </q-slide-transition>
         </q-list>
@@ -76,7 +76,7 @@
           </q-card>
         </q-expansion-item>
 
-        <q-list v-for="Mitem in this.MoreArr" :key=Mitem.key bordered v-show="ShowList" class="q-pa-sm q-mb-sm">
+        <!-- <q-list v-for="Mitem in this.MoreArr" :key=Mitem.key bordered v-show="ShowList" class="q-pa-sm q-mb-sm">
           <q-input dense readonly outlined v-model="Mitem.moretitle" label="항목명" hint="상세보기">
             <template v-slot:after>
               <q-btn round flat color="blue-5" :icon="Mitem.morechk ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
@@ -89,7 +89,7 @@
               <q-input dense readonly type="text" v-model="Mitem.moreprice" label="설명" />
             </div>
           </q-slide-transition>
-        </q-list>
+        </q-list> -->
       </q-card-section>
 
       <q-card-section v-else>
@@ -113,38 +113,13 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input id="subject" v-model="Ptitle" label="제목" />
-        <q-input id="SDay" type="date" v-model="StartDay" label="시작날짜" />
-        <q-input id="EDay" type="date" v-model="EndDay" label="끝나는날짜" />
+        <q-input v-model="Ptitle" :rules="[ChkNull]" outlined dense hint="* 필수 입력" label="제목" />
+        <q-input type="date" v-model="StartDay" label="시작날짜" />
+        <q-input type="date" v-model="EndDay" label="끝나는날짜" />
         <q-toggle :label="`추가항목 설정`" v-model="AddMoreObj" />
 
-        <q-input bottom-slots label="항목명" :disable="!AddMoreObj" v-model="MoreTitle">
-          <template v-slot:append>
-            <q-btn round dense flat icon="add" color="blue-5" @click="CreateMore" />
-          </template>
-        </q-input>
-
-        <q-expansion-item v-for="Mitem in this.MoreArr" :label="Mitem.moretitle" :key=Mitem.key group="MoreOptGroup"
-          caption="상세 설정">
-          <q-card>
-            <q-card-section class="no-padding">
-              <q-list>
-                <q-item tag="label">
-                  <q-item-section>
-                    <q-input :readonly="!AddMoreObj" v-model="Mitem.moreprice" type="text" label="사용금액" />
-                    <q-input :readonly="!AddMoreObj" v-model="Mitem.moredescription" type="text" label="설명" />
-                    <q-btn :disable="!AddMoreObj" class="q-mt-sm" label="항목 삭제" color="red-4"
-                      @click="DelMore(Mitem.moreid)" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card-section>
-          </q-card>
-        </q-expansion-item>
-
         <q-list v-for="Mitem in this.MoreArr" :key=Mitem.key bordered class="q-pa-sm q-mb-sm" group="somegroup">
-          <q-input dense v-model="Mitem.moretitle" :rules="[MoreExpandBtnOpt(Mitem)]" :readonly="!AddMoreObj" label="항목명"
-            hint="상세설정">
+          <q-input dense v-model="Mitem.moretitle" :readonly="!AddMoreObj" label="항목명" hint="상세설정">
             <template v-slot:after>
               <q-btn round flat color="blue-5" :icon="Mitem.morechk ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
                 @click="Mitem.morechk = !Mitem.morechk" />
@@ -154,8 +129,8 @@
 
           <q-slide-transition v-show="Mitem.morechk">
             <div>
-              <q-input dense type="text" v-model="Mitem.moredescription" label="사용금액" />
-              <q-input dense type="text" v-model="Mitem.moreprice" label="설명" />
+              <q-input dense :readonly="!AddMoreObj" type="text" v-model="Mitem.moredescription" label="사용금액" />
+              <q-input dense :readonly="!AddMoreObj" type="text" v-model="Mitem.moreprice" label="설명" />
             </div>
           </q-slide-transition>
         </q-list>
@@ -168,7 +143,7 @@
       </q-card-section>
 
       <q-btn-group spread class="q-mt-sm">
-        <q-btn label="수정완료" color="blue-5" @click="ModifyPlan" />
+        <q-btn label="수정완료" color="blue-6" :disable="ChkInsertBtn" @click="ModifyPlan" />
       </q-btn-group>
     </q-card>
   </q-dialog>
@@ -177,12 +152,24 @@
   <q-dialog v-model="ConDel" persistent>
     <q-card>
       <q-card-section class="row items-center">
-        <span class="q-ml-sm"><span class="text-red-5">{{ this.Ptitle }}</span> 일정을 정말 삭제하시겠습니까?</span>
+        <span><span class="text-red-5">{{ this.Ptitle }}</span> 일정을 정말 삭제하시겠습니까?</span>
       </q-card-section>
 
       <q-card-actions>
         <q-btn flat label="취소" color="primary" v-close-popup />
         <q-btn flat label="삭제" color="red-5" v-close-popup @click="DelPlan(true)" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="ErrorChkNum" persistent>
+    <q-card>
+      <q-card-section class="row items-center">
+        <span>금액입력이 잘못되었습니다</span>
+      </q-card-section>
+
+      <q-card-actions>
+        <q-btn flat label="확인" color="primary" v-close-popup />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -199,6 +186,7 @@ import { INITIAL_EVENTS, createEventId } from './event-utils';
 import { database, oTodosinDB } from 'src/boot/firebase';
 // 파이어스토어 모듈객체 가져오기
 import { doc, deleteDoc, updateDoc, setDoc, deleteField } from "firebase/firestore";
+// UPDATE_EVENTS();
 
 export default {
   components: {
@@ -257,7 +245,8 @@ export default {
       MoreListChk: ref(false),
 
       ChkInsertBtn: ref(true),
-      ChkExpandObjBtn: ref(true)
+      ChkExpandObjBtn: ref(true),
+      ErrorChkNum: ref(false)
     };
   },
   firestore: { oTodos: oTodosinDB },
@@ -272,10 +261,11 @@ export default {
       this.Price = '';
       this.MoreOpt = false;
       this.StartDay = selectInfo.startStr;
-      this.EndDay = selectInfo.endStr;
+      this.EndDay = this.DateInit(selectInfo.endStr);
       this.Info = selectInfo;
       this.ChkInsertBtn = true;
 
+      // console.log(EndDateInit);
       // 추가항목 초기화
       this.AddMoreObj = false;
       this.MoreArr = [];
@@ -299,7 +289,7 @@ export default {
       this.EndDay = '';
       this.FindId = '';
       this.Info = '';
-      this.ChkInsertBtn = true;
+      this.ChkInsertBtn = false;
 
       // 추가항목 초기화
       this.AddMoreObj = false;
@@ -309,23 +299,14 @@ export default {
       this.ShowList = false;
 
       this.Ptitle = clickInfo.event.title;
-      this.StartDay = clickInfo.event.startStr;
-      this.EndDay = clickInfo.event.endStr;
       this.FindId = clickInfo.event.id;
-
       this.Info = clickInfo;
 
       // filter 사용해서해당 db값 otdos에서가져오기
       let FindTodo = this.oTodos.filter((item) => item.id === clickInfo.event.id);
-
-      console.log(FindTodo);
-      // for (let i = 0; i < FindTodo[0].morelist.length; i++) {
-      //   if (item.moretitle !== '') {
-      //     this.MoreArr.push(item);
-      //     console.log(this.MoreArr);
-      //   }
-      // }
-      console.log(this.MoreArr);
+      // console.log(FindTodo[0]);
+      this.StartDay = FindTodo[0].start;
+      this.EndDay = FindTodo[0].end;
 
       if (FindTodo[0].morelist.length > 0) {
         for (let i = 0; i < FindTodo[0].morelist.length; i++) {
@@ -354,24 +335,43 @@ export default {
         this.MoreListChk = false;
       }
     },
+    // 끝나는 날짜 재설정함수
+    DateInit(endStr) {
+      let EndDateInit = new Date(endStr);
+      EndDateInit = new Date(EndDateInit.setDate(EndDateInit.getDate() - 1));
+      EndDateInit = EndDateInit.toISOString().slice(0, 10);
+      return EndDateInit;
+    },
 
     // 버튼이벤트 함수
     CreatePlan() {
       let calendarApi = this.Info.view.calendar;
       // calendarApi = calendarApi.view.calendar;
       let subject = this.Ptitle;
-      // 유효성검사시 공백란 제거 필요
+
+      // 자동증가값(숫자) PK
+      let Pkey = createEventId();
+
+      let numReg = /^[0-9]+$/;
+      for (let item of this.MoreArr) {
+        console.log(numReg.test(item.moreprice));
+        if (numReg.test(item.moreprice) === false) {
+          this.ErrorChkNum = true;
+          return;
+        }
+        // break;
+      }
       if (subject !== '') {
         // 캘린더 이벤트추가
         calendarApi.addEvent({
-          id: createEventId(),
+          id: Pkey,
           title: subject,
           start: this.StartDay,
           end: this.EndDay,
           allDay: true,
         });
         // firebase 데이터저장
-        this.ToDoSave(this.Info);
+        this.ToDoSave(Pkey);
         this.MoreArr = [];
 
         // 모달 닫기
@@ -405,8 +405,7 @@ export default {
     },
 
     // firebase 저장,삭제,수정 함수
-    ToDoSave(Info) {
-      const pKey = createEventId();
+    ToDoSave(Pkey) {
       if (this.AddMoreObj === true) {
         // console.log(this.MoreArr);
         // let Nullchk = false
@@ -417,23 +416,23 @@ export default {
             continue;
           }
         }
-        setDoc(doc(database, 'Lists', pKey), {
-          id: pKey,
+        setDoc(doc(database, 'Lists', Pkey), {
+          id: Pkey,
           title: this.Ptitle,
-          start: Info.startStr,
-          end: Info.endStr,
-          allDay: Info.allDay,
+          start: this.StartDay,
+          end: this.EndDay,
+          allDay: true,
           important: false,
           finishChk: false,
           morelist: this.MoreArr
         });
       } else {
-        setDoc(doc(database, 'Lists', pKey), {
-          id: pKey,
+        setDoc(doc(database, 'Lists', Pkey), {
+          id: Pkey,
           title: this.Ptitle,
-          start: Info.startStr,
-          end: Info.endStr,
-          allDay: Info.allDay,
+          start: this.StartDay,
+          end: this.EndDay,
+          allDay: true,
           important: false,
           finishChk: false,
           morelist: []
@@ -462,19 +461,30 @@ export default {
 
     // 추가항목 생성함수
     CreateMore() {
+      console.log(this.MoreArr);
       if (this.AddMoreObj === true && this.MoreTitle !== '') {
-        this.MoreArr.push(
-          {
-            moreid: this.MoreIncrease,
-            moretitle: this.MoreTitle,
-            moreprice: '',
-            moredescription: '',
-            morechk: false,
-          });
+        if (this.MoreArr.length > 0) {
+          this.MoreArr.push(
+            {
+              moreid: this.MoreIncrease,
+              moretitle: this.MoreTitle,
+              moreprice: '',
+              moredescription: '',
+              morechk: false,
+            });
+        } else {
+          this.MoreArr.push(
+            {
+              moreid: this.MoreIncrease,
+              moretitle: this.MoreTitle,
+              moreprice: '',
+              moredescription: '',
+              morechk: true,
+            });
+        }
         this.MoreTitle = '';
         this.MoreIncrease = this.MoreIncrease + 1;
       }
-      console.log(this.MoreArr);
     },
     // 추가항목 삭제함수
     DelMore(key) {
@@ -484,15 +494,37 @@ export default {
     },
     ChkNull(val) {
       return new Promise((resolve, reject) => {
-        if (val !== '' && this.Ptitle !== '') {
-          this.ChkInsertBtn = false;
+        if (val === '' && this.Ptitle === '') {
+          this.ChkInsertBtn = true;
         } else {
-          this.ChkInsertBtn = true; console.log(this.ChkInsertBtn);
+          this.ChkInsertBtn = false;
         }
-
         resolve(!!val || '* 입력해주세요.');
-
       });
+    },
+    ChkPrice(val) {
+      let numReg = /^[0-9]+$/g;
+      // let test = '123456';
+      // console.log(numReg.test(test));
+      let Pnum = parseInt(val);
+      // if (val.length > 1) {
+      //   let num = [...val].includes(numReg);
+      //   console.log(num);
+      // }
+      // return new Promise((resolve, reject) => {
+      //   console.log(numReg.test(num));
+      //   console.log(parseInt(val));
+      //   resolve(numReg.test(val) === true || '숫자만 입력해주세요.');
+      // });
+      // console.log(Pnum);
+      let num = null;
+      num = numReg.test(val);
+      // console.log(isNaN(Pnum));
+      console.log(num);
+      // if (num) {
+      //   return '숫자만 입력해주세요 .';
+      // }
+      // return true;
     },
 
     // 상세보기버튼 아이콘설정
@@ -508,7 +540,7 @@ export default {
   setup() {
     return {
     };
-  }
+  },
 };
 // 파이어스토어 규칙 변경
 // match /databases/{database}/documents {
@@ -519,16 +551,5 @@ export default {
 //     }
 //   }
 
-// 상대시간 포맷터
-// Intl.RelativeTimeFormat
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/RelativeTimeFormat
-// let rtf = new Intl.RelativeTimeFormat().format(-10, 'days');
-// console.log(rtf); // 10일 전
-// let rtf2 = new Intl.RelativeTimeFormat().format(10, 'days');
-// console.log(rtf2); // 10일 후
-// let rtf3 = new Intl.RelativeTimeFormat().format(10, 'minutes');
-// console.log(rtf3); // 10분 후
-// let rtf4 = new Intl.RelativeTimeFormat("kr", { numeric: "auto" }).format(0, 'day');
-// console.log(rtf4); // 오늘, 어제, 내일 형식으로 나오게 하려면 .RelativeTimeFormat()에 파라미터 입력
 </script>
 
