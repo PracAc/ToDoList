@@ -28,12 +28,12 @@ import '@quasar/extras/material-icons/material-icons.css';
 
 
 // We load Quasar stylesheet file
-import 'quasar/dist/quasar.sass';
+import 'ToDoList/quasar/dist/quasar.sass';
 
 
 
 
-import 'src/css/app.scss';
+import 'ToDoList/src/css/app.scss';
 
 import '@quasar/quasar-ui-qcalendar/src/index.sass';
 
