@@ -332,11 +332,11 @@ export default {
     // 버튼이벤트 함수
     CreatePlan() {
       let calendarApi = this.Info.view.calendar;
-      // calendarApi = calendarApi.view.calendar;
       let subject = this.Ptitle;
 
       // 자동증가값(숫자) PK
       let Pkey = createEventId();
+      console.log(Pkey);
 
       let numReg = /^[0-9]+$/;
       for (let item of this.MoreArr) {
@@ -399,6 +399,7 @@ export default {
 
     // firebase 저장,삭제,수정 함수
     ToDoSave(Pkey) {
+      let primary = Pkey;
       if (this.AddMoreObj === true) {
         // let Nullchk = false
         for (let moreitem in this.MoreArr) {
@@ -407,8 +408,8 @@ export default {
             continue;
           }
         }
-        setDoc(doc(database, 'Lists', Pkey), {
-          id: Pkey,
+        setDoc(doc(database, 'Lists', primary), {
+          id: primary,
           title: this.Ptitle,
           start: this.StartDay,
           end: this.EndDay,
@@ -418,8 +419,8 @@ export default {
           morelist: this.MoreArr
         });
       } else {
-        setDoc(doc(database, 'Lists', Pkey), {
-          id: Pkey,
+        setDoc(doc(database, 'Lists', primary), {
+          id: primary,
           title: this.Ptitle,
           start: this.StartDay,
           end: this.EndDay,
